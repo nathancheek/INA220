@@ -11,9 +11,9 @@ uint8_t INA220::begin(uint8_t maxBusAmps, uint32_t microOhmR, const ina_Adc_Mode
                  compute each device's internal power register
       @param[in] microOhmR Shunt resistance in micro-ohms, this value is used to compute each device's internal
                  power register
-      @param[in] busAdcMode 4-bit mode selector for the Bus ADC (see INA_ADC_MODE_* for possible modes)
-      @param[in] shuntAdcMode 4-bit mode selector for the Shunt ADC (see INA_ADC_MODE_* for possible modes)
-      @param[in] deviceMode 3-bit device mode selector (see ina_Mode for possible modes)
+      @param[in] busAdcMode 4-bit mode selector for the Bus ADC (see ina_Adc_Mode enum for possible modes)
+      @param[in] shuntAdcMode 4-bit mode selector for the Shunt ADC (see ina_Adc_Mode enum for possible modes)
+      @param[in] deviceMode 3-bit device mode selector (see ina_Mode enum for possible modes)
       @param[in] deviceAddresses pointer to array of device addresses
       @param[in] numDevices number of devices enumerated in deviceAddresses array
       @return    Number of INA220 devices found on the I2C bus */
