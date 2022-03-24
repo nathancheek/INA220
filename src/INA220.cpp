@@ -1,5 +1,6 @@
 #include "INA220.h"
 #include <Wire.h>
+#include "assert.h"
 
 INA220::INA220() {
 }
@@ -17,13 +18,21 @@ uint8_t INA220::begin(uint8_t maxBusAmps, uint32_t microOhmR, const ina_Adc_Mode
       @param[in] deviceAddresses pointer to array of device addresses
       @param[in] numDevices number of devices enumerated in deviceAddresses array
       @return    Number of INA220 devices found on the I2C bus */
-
+  float temp;
   this->deviceAddresses      = deviceAddresses;
   this->numDevices           = numDevices;
   this->configRegister       = INA220_CONFIG_DEFAULT; // Initialize to the INA220 default value
-  this->current_LSB          = (uint64_t)maxBusAmps * 1000000000 / 32767; // Get the best possible LSB in nA
+  this->current_LSB          = (uint64_t) maxBusAmps * 1000000000 / 32767; // Get the best possible LSB in nA
   this->power_LSB            = (uint32_t)20 * this->current_LSB;          // Fixed multiplier per device
-  this->calibrationRegister  = (uint64_t)409600000 / ((uint64_t)this->current_LSB * (uint64_t)microOhmR / (uint64_t)100000); // Compute calibration register
+  // Compute calibration register
+  // Convert numerator to nanoamps, Convert microohms to ohms, perform equation 1 in datasheet
+  // There be dragons here!  Watch for overflow.   Notice cast to uint16_t.  
+  uint64_t calReg = (uint64_t)40960000 / ((uint64_t)this->current_LSB * (uint64_t)microOhmR / (uint64_t)1000000);
+
+  if(calReg >= 65536)
+    return 0;
+  
+  this->calibrationRegister  = (uint16_t)calReg;
 
   /* Determine optimal programmable gain so that there is no chance of an overflow yet with maximum accuracy */
   uint8_t programmableGain;                                              // work variable for the programmable gain
@@ -45,7 +54,7 @@ uint8_t INA220::begin(uint8_t maxBusAmps, uint32_t microOhmR, const ina_Adc_Mode
   this->configRegister &= ~INA_CONFIG_MODE_MASK;                         // Zero out the device mode bits
   this->configRegister |= INA_CONFIG_MODE_MASK & deviceMode;             // Mask off unused bits then shift in the mode settings
 
-  Wire.begin();
+  Wire1.begin();
   uint8_t availableDevices = resetAll(); // Check if communication is working, then write calibration and configuration registers
   return availableDevices;
 }
@@ -57,7 +66,7 @@ void INA220::setI2CSpeed(const uint32_t i2cSpeed) {
                  is done.
       @param[in] i2cSpeed [optional] changes the I2C speed to the rate specified in Hertz */
 
-  Wire.setClock(i2cSpeed);
+  Wire1.setClock(i2cSpeed);
 }
 
 void INA220::setMode(const uint8_t mode, const uint8_t deviceNumber) {
@@ -184,8 +193,8 @@ uint8_t INA220::reset(const uint8_t deviceNumber) {
       @return    uint8_t number of devices that identified as INA220 (0 or 1) */
 
   uint8_t availableDevices = 0;
-  Wire.beginTransmission(getDeviceAddress(deviceNumber));
-  uint8_t good = Wire.endTransmission();
+  Wire1.beginTransmission(getDeviceAddress(deviceNumber));
+  uint8_t good = Wire1.endTransmission();
   if (good == 0) { // If no I2C error
     writeWord(INA_CONFIGURATION_REGISTER, INA_RESET_DEVICE, getDeviceAddress(deviceNumber));          // Forces INAs to reset
     uint16_t tempRegister = readWord(INA_CONFIGURATION_REGISTER, getDeviceAddress(deviceNumber));     // Read the newly reset register
@@ -266,17 +275,25 @@ int16_t INA220::readWord(const uint8_t addr, const uint8_t deviceAddress) {
       @param[in] deviceAddress Address on the I2C device to read from
       @return    integer value read from the I2C device */
 
-  Wire.beginTransmission(deviceAddress);       // Address the I2C device
-  Wire.write(addr);                            // Send register address to read
-  Wire.endTransmission();                      // Close transmission
+  Wire1.beginTransmission(deviceAddress);       // Address the I2C device
+  Wire1.write(addr);                            // Send register address to read
+  Wire1.endTransmission();                      // Close transmission
   delayMicroseconds(I2C_DELAY);                // Delay required for sync
-  Wire.requestFrom(deviceAddress, (uint8_t)2); // Request 2 consecutive bytes
-  int16_t returnData  = Wire.read();           // Read the msb
+  Wire1.requestFrom(deviceAddress, (uint8_t)2); // Request 2 consecutive bytes
+  int16_t returnData  = Wire1.read();           // Read the msb
   returnData  = returnData << 8;               // Shift the data over 8 bits
-  returnData |= Wire.read();                   // Read the lsb
+  returnData |= Wire1.read();                   // Read the lsb
   return returnData;
 }
 
+void INA220::dumpRegisters(uint16_t * regBuffer, const uint8_t deviceAddress)
+{
+  uint8_t regAddress;
+  for( regAddress = 0; regAddress < 6; regAddress++ )
+    regBuffer[regAddress] = readWord(regAddress, deviceAddress);
+}
+
+  
 void INA220::writeWord(const uint8_t addr, const uint16_t data, const uint8_t deviceAddress) {
   /*! @brief     Write 2 bytes to the specified I2C address
       @details   Standard I2C protocol is used, but a delay of I2C_DELAY microseconds has been added to let the INAxxx
@@ -285,10 +302,10 @@ void INA220::writeWord(const uint8_t addr, const uint16_t data, const uint8_t de
       @param[in] data 2 Bytes to write to the device
       @param[in] deviceAddress Address on the I2C device to write to */
 
-  Wire.beginTransmission(deviceAddress); // Address the I2C device
-  Wire.write(addr);                      // Send register address to write
-  Wire.write((uint8_t)(data >> 8));      // Write the first (MSB) byte
-  Wire.write((uint8_t)data);             // And then the second
-  Wire.endTransmission();                // Close transmission and actually send data
+  Wire1.beginTransmission(deviceAddress); // Address the I2C device
+  Wire1.write(addr);                      // Send register address to write
+  Wire1.write((uint8_t)(data >> 8));      // Write the first (MSB) byte
+  Wire1.write((uint8_t)data);             // And then the second
+  Wire1.endTransmission();                // Close transmission and actually send data
   delayMicroseconds(I2C_DELAY);          // Delay required for sync
 }

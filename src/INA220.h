@@ -49,12 +49,12 @@
     INA_ADC_MODE_11BIT  =  0x2,
     INA_ADC_MODE_12BIT  =  0x3,
     INA_ADC_MODE_2AVG   =  0x9,
-    INA_ADC_MODE_4AVG   = 0x10,
-    INA_ADC_MODE_8AVG   = 0x11,
-    INA_ADC_MODE_16AVG  = 0x12,
-    INA_ADC_MODE_32AVG  = 0x13,
-    INA_ADC_MODE_64AVG  = 0x14,
-    INA_ADC_MODE_128AVG = 0x15
+    INA_ADC_MODE_4AVG   = 0x0A,
+    INA_ADC_MODE_8AVG   = 0x0B,
+    INA_ADC_MODE_16AVG  = 0x0C,
+    INA_ADC_MODE_32AVG  = 0x0D,
+    INA_ADC_MODE_64AVG  = 0x0E,
+    INA_ADC_MODE_128AVG = 0x0F
   }; // of enumerated type
 
   /*****************************************************************************************************************
@@ -112,6 +112,7 @@
       bool        conversionFinished        (const uint8_t  deviceNumber);
       bool        waitForConversion         (const uint16_t timeout, const uint8_t  deviceNumber);
       uint8_t     waitForConversionAll      (const uint16_t timeout);
+      void        dumpRegisters(uint16_t * regBuffer, const uint8_t deviceAddress);
     private:
       void        initDevice                (const uint8_t  deviceNumber);
       int16_t     readWord                  (const uint8_t  addr, const uint8_t  deviceAddress);
