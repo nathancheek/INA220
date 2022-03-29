@@ -5,7 +5,7 @@
 INA220::INA220() {
 }
 
-uint8_t INA220::begin(uint8_t maxBusAmps, uint32_t microOhmR, const ina_Adc_Mode busAdcMode, const ina_Adc_Mode shuntAdcMode, const ina_Mode deviceMode, uint8_t* deviceAddresses, uint8_t numDevices) {
+uint8_t INA220::begin( TwoWire &I2C, uint8_t maxBusAmps, uint32_t microOhmR, const ina_Adc_Mode busAdcMode, const ina_Adc_Mode shuntAdcMode, const ina_Mode deviceMode, uint8_t* deviceAddresses, uint8_t numDevices) {
   /*! @brief     Initializes the contents of the class
       @details   Sets INA Configuration registers for the devices at the specified addresses.
       @param[in] maxBusAmps Integer value holding the maximum expected bus amperage, this value is used to
@@ -24,6 +24,7 @@ uint8_t INA220::begin(uint8_t maxBusAmps, uint32_t microOhmR, const ina_Adc_Mode
   this->configRegister       = INA220_CONFIG_DEFAULT; // Initialize to the INA220 default value
   this->current_LSB          = (uint64_t) maxBusAmps * 1000000000 / 32767; // Get the best possible LSB in nA
   this->power_LSB            = (uint32_t)20 * this->current_LSB;          // Fixed multiplier per device
+  this->I2C_Ptr = &I2C;
   // Compute calibration register
   // Convert numerator to nanoamps, Convert microohms to ohms, perform equation 1 in datasheet
   // There be dragons here!  Watch for overflow.   Notice cast to uint16_t.  
@@ -54,7 +55,7 @@ uint8_t INA220::begin(uint8_t maxBusAmps, uint32_t microOhmR, const ina_Adc_Mode
   this->configRegister &= ~INA_CONFIG_MODE_MASK;                         // Zero out the device mode bits
   this->configRegister |= INA_CONFIG_MODE_MASK & deviceMode;             // Mask off unused bits then shift in the mode settings
 
-  Wire1.begin();
+  I2C_Ptr->begin();
   uint8_t availableDevices = resetAll(); // Check if communication is working, then write calibration and configuration registers
   return availableDevices;
 }
@@ -66,7 +67,7 @@ void INA220::setI2CSpeed(const uint32_t i2cSpeed) {
                  is done.
       @param[in] i2cSpeed [optional] changes the I2C speed to the rate specified in Hertz */
 
-  Wire1.setClock(i2cSpeed);
+  I2C_Ptr->setClock(i2cSpeed);
 }
 
 void INA220::setMode(const uint8_t mode, const uint8_t deviceNumber) {
@@ -193,8 +194,8 @@ uint8_t INA220::reset(const uint8_t deviceNumber) {
       @return    uint8_t number of devices that identified as INA220 (0 or 1) */
 
   uint8_t availableDevices = 0;
-  Wire1.beginTransmission(getDeviceAddress(deviceNumber));
-  uint8_t good = Wire1.endTransmission();
+  I2C_Ptr->beginTransmission(getDeviceAddress(deviceNumber));
+  uint8_t good = I2C_Ptr->endTransmission();
   if (good == 0) { // If no I2C error
     writeWord(INA_CONFIGURATION_REGISTER, INA_RESET_DEVICE, getDeviceAddress(deviceNumber));          // Forces INAs to reset
     uint16_t tempRegister = readWord(INA_CONFIGURATION_REGISTER, getDeviceAddress(deviceNumber));     // Read the newly reset register
@@ -275,14 +276,14 @@ int16_t INA220::readWord(const uint8_t addr, const uint8_t deviceAddress) {
       @param[in] deviceAddress Address on the I2C device to read from
       @return    integer value read from the I2C device */
 
-  Wire1.beginTransmission(deviceAddress);       // Address the I2C device
-  Wire1.write(addr);                            // Send register address to read
-  Wire1.endTransmission();                      // Close transmission
+  I2C_Ptr->beginTransmission(deviceAddress);       // Address the I2C device
+  I2C_Ptr->write(addr);                            // Send register address to read
+  I2C_Ptr->endTransmission();                      // Close transmission
   delayMicroseconds(I2C_DELAY);                // Delay required for sync
-  Wire1.requestFrom(deviceAddress, (uint8_t)2); // Request 2 consecutive bytes
-  int16_t returnData  = Wire1.read();           // Read the msb
+  I2C_Ptr->requestFrom(deviceAddress, (uint8_t)2); // Request 2 consecutive bytes
+  int16_t returnData  = I2C_Ptr->read();           // Read the msb
   returnData  = returnData << 8;               // Shift the data over 8 bits
-  returnData |= Wire1.read();                   // Read the lsb
+  returnData |= I2C_Ptr->read();                   // Read the lsb
   return returnData;
 }
 
@@ -302,10 +303,10 @@ void INA220::writeWord(const uint8_t addr, const uint16_t data, const uint8_t de
       @param[in] data 2 Bytes to write to the device
       @param[in] deviceAddress Address on the I2C device to write to */
 
-  Wire1.beginTransmission(deviceAddress); // Address the I2C device
-  Wire1.write(addr);                      // Send register address to write
-  Wire1.write((uint8_t)(data >> 8));      // Write the first (MSB) byte
-  Wire1.write((uint8_t)data);             // And then the second
-  Wire1.endTransmission();                // Close transmission and actually send data
+  I2C_Ptr->beginTransmission(deviceAddress); // Address the I2C device
+  I2C_Ptr->write(addr);                      // Send register address to write
+  I2C_Ptr->write((uint8_t)(data >> 8));      // Write the first (MSB) byte
+  I2C_Ptr->write((uint8_t)data);             // And then the second
+  I2C_Ptr->endTransmission();                // Close transmission and actually send data
   delayMicroseconds(I2C_DELAY);          // Delay required for sync
 }

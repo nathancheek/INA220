@@ -17,7 +17,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 *******************************************************************************************************************/
- 
+#include "Wire.h" 
 #include "Arduino.h"
 
 #ifndef INA220__Class_h
@@ -93,7 +93,7 @@
   class INA220 {
     public:
       INA220                                ();
-      uint8_t     begin                     (uint8_t maxBusAmps, uint32_t microOhmR, const ina_Adc_Mode busAdcMode, const ina_Adc_Mode shuntAdcMode, const ina_Mode deviceMode, uint8_t* deviceAddresses, uint8_t numDevices);
+    uint8_t     begin                     ( TwoWire &I2C, uint8_t maxBusAmps, uint32_t microOhmR, const ina_Adc_Mode busAdcMode, const ina_Adc_Mode shuntAdcMode, const ina_Mode deviceMode, uint8_t* deviceAddresses, uint8_t numDevices);
       void        setI2CSpeed               (const uint32_t i2cSpeed = INA_I2C_STANDARD_MODE);
       void        setMode                   (const uint8_t  mode,     const uint8_t deviceNumber);
       void        setModeAll                (const uint8_t  mode);
@@ -123,5 +123,6 @@
       uint32_t    power_LSB;
       uint16_t    calibrationRegister;
       uint16_t    configRegister;
+      TwoWire*    I2C_Ptr;
   };
 #endif
