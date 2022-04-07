@@ -1,6 +1,5 @@
 #include "INA220.h"
 #include <Wire.h>
-#include "assert.h"
 
 INA220::INA220() {
 }
