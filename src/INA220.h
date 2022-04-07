@@ -17,7 +17,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 *******************************************************************************************************************/
- 
+#include "Wire.h" 
 #include "Arduino.h"
 
 #ifndef INA220__Class_h
@@ -49,12 +49,12 @@
     INA_ADC_MODE_11BIT  =  0x2,
     INA_ADC_MODE_12BIT  =  0x3,
     INA_ADC_MODE_2AVG   =  0x9,
-    INA_ADC_MODE_4AVG   = 0x10,
-    INA_ADC_MODE_8AVG   = 0x11,
-    INA_ADC_MODE_16AVG  = 0x12,
-    INA_ADC_MODE_32AVG  = 0x13,
-    INA_ADC_MODE_64AVG  = 0x14,
-    INA_ADC_MODE_128AVG = 0x15
+    INA_ADC_MODE_4AVG   = 0x0A,
+    INA_ADC_MODE_8AVG   = 0x0B,
+    INA_ADC_MODE_16AVG  = 0x0C,
+    INA_ADC_MODE_32AVG  = 0x0D,
+    INA_ADC_MODE_64AVG  = 0x0E,
+    INA_ADC_MODE_128AVG = 0x0F
   }; // of enumerated type
 
   /*****************************************************************************************************************
@@ -93,7 +93,7 @@
   class INA220 {
     public:
       INA220                                ();
-      uint8_t     begin                     (uint8_t maxBusAmps, uint32_t microOhmR, const ina_Adc_Mode busAdcMode, const ina_Adc_Mode shuntAdcMode, const ina_Mode deviceMode, uint8_t* deviceAddresses, uint8_t numDevices);
+    uint8_t     begin                     ( TwoWire &I2C, uint8_t maxBusAmps, uint32_t microOhmR, const ina_Adc_Mode busAdcMode, const ina_Adc_Mode shuntAdcMode, const ina_Mode deviceMode, uint8_t* deviceAddresses, uint8_t numDevices);
       void        setI2CSpeed               (const uint32_t i2cSpeed = INA_I2C_STANDARD_MODE);
       void        setMode                   (const uint8_t  mode,     const uint8_t deviceNumber);
       void        setModeAll                (const uint8_t  mode);
@@ -112,6 +112,7 @@
       bool        conversionFinished        (const uint8_t  deviceNumber);
       bool        waitForConversion         (const uint16_t timeout, const uint8_t  deviceNumber);
       uint8_t     waitForConversionAll      (const uint16_t timeout);
+      void        dumpRegisters(uint16_t * regBuffer, const uint8_t deviceAddress);
     private:
       void        initDevice                (const uint8_t  deviceNumber);
       int16_t     readWord                  (const uint8_t  addr, const uint8_t  deviceAddress);
@@ -122,5 +123,6 @@
       uint32_t    power_LSB;
       uint16_t    calibrationRegister;
       uint16_t    configRegister;
+      TwoWire*    I2C_Ptr;
   };
 #endif
