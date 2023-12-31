@@ -28,10 +28,10 @@ uint8_t INA220::begin(uint8_t maxBusAmps, uint32_t microOhmR, const ina_Adc_Mode
   /* Determine optimal programmable gain so that there is no chance of an overflow yet with maximum accuracy */
   uint8_t programmableGain;                                               // work variable for the programmable gain
   uint16_t maxShuntmV = maxBusAmps * microOhmR / 1000;                    // Compute maximum shunt millivolts
-  if      (maxShuntmV <= 40)  programmableGain = 0;                       // gain x1 for +- 40mV
-  else if (maxShuntmV <= 80)  programmableGain = 1;                       // gain x2 for +- 80mV
-  else if (maxShuntmV <= 160) programmableGain = 2;                       // gain x4 for +- 160mV
-  else                        programmableGain = 3;                       // default gain x8 for +- 320mV
+  if      (maxShuntmV <= 40)  programmableGain = 0;                       // gain  1 for +/- 40mV  range
+  else if (maxShuntmV <= 80)  programmableGain = 1;                       // gain /2 for +/- 80mV  range
+  else if (maxShuntmV <= 160) programmableGain = 2;                       // gain /4 for +/- 160mV range
+  else                        programmableGain = 3;                       // gain /8 for +/- 320mV range (default)
   this->configRegister  = INA220_CONFIG_DEFAULT & ~INA220_CONFIG_PG_MASK; // Zero out the programmable gain bits
   this->configRegister |= programmableGain << INA220_PG_FIRST_BIT;        // Overwrite the new values
   bitSet(this->configRegister, INA220_BRNG_BIT);                          // set to 1 for 0-32 volts
