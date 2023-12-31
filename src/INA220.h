@@ -44,17 +44,17 @@
   *****************************************************************************************************************/
   enum ina_Adc_Mode
   {
-    INA_ADC_MODE_9BIT   =  0x0,
-    INA_ADC_MODE_10BIT  =  0x1,
-    INA_ADC_MODE_11BIT  =  0x2,
-    INA_ADC_MODE_12BIT  =  0x3,
-    INA_ADC_MODE_2AVG   =  0x9,
-    INA_ADC_MODE_4AVG   = 0x10,
-    INA_ADC_MODE_8AVG   = 0x11,
-    INA_ADC_MODE_16AVG  = 0x12,
-    INA_ADC_MODE_32AVG  = 0x13,
-    INA_ADC_MODE_64AVG  = 0x14,
-    INA_ADC_MODE_128AVG = 0x15
+    INA_ADC_MODE_9BIT   = 0x0,
+    INA_ADC_MODE_10BIT  = 0x1,
+    INA_ADC_MODE_11BIT  = 0x2,
+    INA_ADC_MODE_12BIT  = 0x3,
+    INA_ADC_MODE_2AVG   = 0x9,
+    INA_ADC_MODE_4AVG   = 0xA,
+    INA_ADC_MODE_8AVG   = 0xB,
+    INA_ADC_MODE_16AVG  = 0xC,
+    INA_ADC_MODE_32AVG  = 0xD,
+    INA_ADC_MODE_64AVG  = 0xE,
+    INA_ADC_MODE_128AVG = 0xF
   }; // of enumerated type
 
   /*****************************************************************************************************************
@@ -80,9 +80,9 @@
   const uint16_t INA220_BUS_VOLTAGE_LSB         =     400; ///< INA220 LSB in uV *100 4.00mV
   const uint16_t INA220_SHUNT_VOLTAGE_LSB       =     100; ///< INA220 LSB in uV *10  10.0uV
   const uint16_t INA220_CONFIG_ADCMODE_MASK     =  0x07F8; ///< INA220 Bits 3-6, 7-10
-  const uint16_t INA220_CONFIG_PG_MASK          =  0xE7FF; ///< INA220 Bits 11-12 masked
-  const uint16_t INA220_CONFIG_BADC_MASK        =  0x0780; ///< INA220 Bits 7-10  masked
-  const uint16_t INA220_CONFIG_SADC_MASK        =  0x0038; ///< INA220 Bits 3-5
+  const uint16_t INA220_CONFIG_PG_MASK          =  0x1800; ///< INA220 Bits 11-12
+  const uint16_t INA220_CONFIG_BADC_MASK        =  0x0780; ///< INA220 Bits 7-10
+  const uint16_t INA220_CONFIG_SADC_MASK        =  0x0078; ///< INA220 Bits 3-6
   const uint8_t  INA220_BRNG_BIT                =      13; ///< INA220 Bit for BRNG in config register
   const uint8_t  INA220_PG_FIRST_BIT            =      11; ///< INA220 first bit of Programmable Gain
   const uint8_t  INA220_BADC_FIRST_BIT          =       7; ///< INA220 first bit of Bus ADC configuration

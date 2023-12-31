@@ -20,30 +20,30 @@ uint8_t INA220::begin(uint8_t maxBusAmps, uint32_t microOhmR, const ina_Adc_Mode
 
   this->deviceAddresses      = deviceAddresses;
   this->numDevices           = numDevices;
-  this->configRegister       = INA220_CONFIG_DEFAULT; // Initialize to the INA220 default value
+  this->configRegister       = INA220_CONFIG_DEFAULT;                     // Initialize to the INA220 default value
   this->current_LSB          = (uint64_t)maxBusAmps * 1000000000 / 32767; // Get the best possible LSB in nA
   this->power_LSB            = (uint32_t)20 * this->current_LSB;          // Fixed multiplier per device
   this->calibrationRegister  = (uint64_t)409600000 / ((uint64_t)this->current_LSB * (uint64_t)microOhmR / (uint64_t)100000); // Compute calibration register
 
   /* Determine optimal programmable gain so that there is no chance of an overflow yet with maximum accuracy */
-  uint8_t programmableGain;                                              // work variable for the programmable gain
-  uint16_t maxShuntmV = maxBusAmps * microOhmR / 1000;                   // Compute maximum shunt millivolts
-  if      (maxShuntmV <= 40)  programmableGain = 0;                      // gain x1 for +- 40mV
-  else if (maxShuntmV <= 80)  programmableGain = 1;                      // gain x2 for +- 80mV
-  else if (maxShuntmV <= 160) programmableGain = 2;                      // gain x4 for +- 160mV
-  else                        programmableGain = 3;                      // default gain x8 for +- 320mV
-  this->configRegister  = INA220_CONFIG_DEFAULT & INA220_CONFIG_PG_MASK; // Zero out the programmable gain
-  this->configRegister |= programmableGain << INA220_PG_FIRST_BIT;       // Overwrite the new values
-  bitSet(this->configRegister, INA220_BRNG_BIT);                         // set to 1 for 0-32 volts
+  uint8_t programmableGain;                                               // work variable for the programmable gain
+  uint16_t maxShuntmV = maxBusAmps * microOhmR / 1000;                    // Compute maximum shunt millivolts
+  if      (maxShuntmV <= 40)  programmableGain = 0;                       // gain x1 for +- 40mV
+  else if (maxShuntmV <= 80)  programmableGain = 1;                       // gain x2 for +- 80mV
+  else if (maxShuntmV <= 160) programmableGain = 2;                       // gain x4 for +- 160mV
+  else                        programmableGain = 3;                       // default gain x8 for +- 320mV
+  this->configRegister  = INA220_CONFIG_DEFAULT & ~INA220_CONFIG_PG_MASK; // Zero out the programmable gain bits
+  this->configRegister |= programmableGain << INA220_PG_FIRST_BIT;        // Overwrite the new values
+  bitSet(this->configRegister, INA220_BRNG_BIT);                          // set to 1 for 0-32 volts
 
   /* Place ADC mode bits in configuration register */
-  this->configRegister &= ~INA220_CONFIG_ADCMODE_MASK;                   // Zero out the ADC mode bits
-  this->configRegister |= (busAdcMode & 0xF)   << INA220_BADC_FIRST_BIT; // Mask off unused bits then shift in the bus ADC mode
-  this->configRegister |= (shuntAdcMode & 0xF) << INA220_SADC_FIRST_BIT; // Mask off unused bits then shift in the shunt ADC mode
+  this->configRegister &= ~INA220_CONFIG_ADCMODE_MASK;                    // Zero out the ADC mode bits
+  this->configRegister |= (busAdcMode & 0xF)   << INA220_BADC_FIRST_BIT;  // Mask off unused bits then shift in the bus ADC mode
+  this->configRegister |= (shuntAdcMode & 0xF) << INA220_SADC_FIRST_BIT;  // Mask off unused bits then shift in the shunt ADC mode
 
   /* Place device mode bits in configuration register */
-  this->configRegister &= ~INA_CONFIG_MODE_MASK;                         // Zero out the device mode bits
-  this->configRegister |= INA_CONFIG_MODE_MASK & deviceMode;             // Mask off unused bits then shift in the mode settings
+  this->configRegister &= ~INA_CONFIG_MODE_MASK;                          // Zero out the device mode bits
+  this->configRegister |= INA_CONFIG_MODE_MASK & deviceMode;              // Mask off unused bits then shift in the mode settings
 
   Wire.begin();
   uint8_t availableDevices = resetAll(); // Check if communication is working, then write calibration and configuration registers
