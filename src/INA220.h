@@ -74,7 +74,7 @@
   const uint16_t INA_RESET_DEVICE               =  0x8000; ///< Write to configuration to reset device
   const uint16_t INA_CONVERSION_READY_MASK      =  0x0080; ///< Bit 4
   const uint16_t INA_CONFIG_MODE_MASK           =  0x0007; ///< Bits 0-3
-  const uint8_t  INA_DEFAULT_OPERATING_MODE     =    B111; ///< Default continuous mode
+  const uint8_t  INA_DEFAULT_OPERATING_MODE     =     0x7; ///< Default continuous mode
   const uint8_t  INA220_SHUNT_VOLTAGE_REGISTER  =       1; ///< INA220 Shunt Voltage Register
   const uint8_t  INA220_CURRENT_REGISTER        =       4; ///< INA220 Current Register
   const uint16_t INA220_BUS_VOLTAGE_LSB         =     400; ///< INA220 LSB in uV *100 4.00mV
